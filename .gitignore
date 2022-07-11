@@ -1,0 +1,6 @@
+
+*.vsidx
+
+obj/Debug/
+
+.vs/AINirvanaUltrawideFix/FileContentIndex/read.lock
