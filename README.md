@@ -10,8 +10,8 @@ Implements proper ultrawide support and UI fixes for **AI: The Somnium Files - n
 * Proper UI fixes, including proper window scaling and scaling of visual filters (like brightness)
 
 ## Installation
-* Extract [latest release](https://github.com/jshethbright/AINirvanaUltrawideFix/releases) to the root of the game directory.
-    * For Steam, this can be located through right-clicking the game in the library bar -> Manage -> Browse local files.
+* Extract the [latest release](https://github.com/jshethbright/AINirvanaUltrawideFix/releases) to the root of the game directory.
+    * For Steam, this can be located by right-clicking the game in the library bar -> Manage -> Browse local files.
 * Run the game (this will take a while on the first run as MelonLoader needs to install).
 
 ## Configuration
