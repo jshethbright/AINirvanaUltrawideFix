@@ -3,7 +3,7 @@ Implements proper ultrawide support and UI fixes for **AI: The Somnium Files - n
 
 *Credits to @Lyall for initial fix and resolution update code.*
 
-![image](https://user-images.githubusercontent.com/11449167/178228625-fc4076b9-c3e3-4737-af93-aea30b0374eb.png)
+![image](https://user-images.githubusercontent.com/11449167/178424192-2f9f0697-dcf0-4c84-bfb1-5ff1f63fb944.png)
 
 **Fixes:**
 * Support for arbitrary resolutions and aspect ratios
