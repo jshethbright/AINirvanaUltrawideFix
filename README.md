@@ -8,6 +8,7 @@ Implements proper ultrawide support and UI fixes for **AI: The Somnium Files - n
 **Fixes:**
 * Support for arbitrary resolutions and aspect ratios
 * Proper UI fixes, including proper window scaling and scaling of visual filters (like brightness)
+* **Fixes in-game MSAA**, which was unexplicably disabled.
 
 ## Installation
 * Extract the [latest release](https://github.com/jshethbright/AINirvanaUltrawideFix/releases) to the root of the game directory.
@@ -16,6 +17,13 @@ Implements proper ultrawide support and UI fixes for **AI: The Somnium Files - n
 
 ## Configuration
 * Edit the generated config file at the root of the game directory, in the **Mod** folder.
+* **Settings:**
+    * `Resolution_Width`: Monitor resolution width (e.g. 3440)
+    * `Resolution_Height`: Monitor resolution height (e.g. 1440)
+    * `Fullscreen`: (true/false) Choose between windowed (false) or fullscreen (true)
+    * `UI_Fixes`: (true/false) Enable UI fixes for ultrawide monitors
+    * `CursorVisible`: (true/false) Hide hardware cursor
+    * `MSAA`: (0/2/4/8) Enable Multisample anti-aliasing (MSAA)
 
 ## Usage
 * Run the game!
