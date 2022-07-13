@@ -7,7 +7,7 @@ Implements proper ultrawide support and UI fixes for **AI: The Somnium Files - n
 
 **Fixes:**
 * Support for arbitrary resolutions and aspect ratios
-* Proper UI fixes, including proper window scaling and scaling of visual filters (like brightness)
+* UI fixes, including proper window and visual filter scaling (like brightness)
 * **Fixes in-game MSAA**
 
 ## Installation
