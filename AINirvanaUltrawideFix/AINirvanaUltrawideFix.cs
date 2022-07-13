@@ -2,7 +2,10 @@
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using System.Collections.Generic;
+using System;
 
 [assembly: MelonInfo(typeof(AINirvanaUltrawideFix.AINirvanaUltrawideFix), "AI: Somnium Files - nirvanA Initiative", "1.0.0", "jshethbright")]
 [assembly: MelonGame("SpikeChunsoft", "AI_TheSomniumFiles2")]
@@ -20,7 +23,7 @@ namespace AINirvanaUltrawideFix
 
         public override void OnApplicationStart()
         {
-            LoggerInstance.Msg("Application started.");
+            //LoggerInstance.Msg("Application started.");
 
             Fixes = MelonPreferences.CreateCategory("AINirvanaUltrawideFix");
             Fixes.SetFilePath("Mods/AINirvanaUltrawideFix.cfg");
@@ -48,18 +51,15 @@ namespace AINirvanaUltrawideFix
                 {
                     Screen.SetResolution(DesiredResolutionX.Value, DesiredResolutionY.Value, FullScreenMode.FullScreenWindow);
                 }
+                Cursor.visible = CursorVisible.Value;
 
-                
-                QualitySettings.antiAliasing = 8;
-                var pipes = GameObject.FindObjectsOfType<UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset>(true);
-                foreach (var pipe in pipes)
-                {
-                    MelonLogger.Msg(pipe.m_MSAA);
-                    pipe.m_MSAA = UnityEngine.Rendering.Universal.MsaaQuality._8x;
-                    //GraphicsSettings.renderPipelineAsset = pipe;
+                QualitySettings.antiAliasing = MSAA.Value;
+                //QualitySettings.antiAliasing = 0;
 
-                }
+
             }
+
+            
 
             
         }
@@ -72,7 +72,7 @@ namespace AINirvanaUltrawideFix
             [HarmonyPrefix]
             public static void fixPipeline(UniversalRenderPipelineAsset __instance)
             {
-                //MelonLogger.Msg($"{__instance.name}: {__instance.GetInstanceID()}");
+
                 switch (MSAA.Value)
                 {
                     case 0:
@@ -91,6 +91,37 @@ namespace AINirvanaUltrawideFix
                         __instance.m_MSAA = MsaaQuality.Disabled;
                         break;
                 }
+
+                
+
+            }
+
+
+            [HarmonyPatch(typeof(Game.AiSight), "SetMode")]
+            [HarmonyPrefix]
+            public static void fixAiSightFilters(Game.AiSight __instance, ref Special special)
+            {
+                if (special != Special.Info && special != Special.Normal && special != Special.Zoom)
+                {
+                    QualitySettings.antiAliasing = 0;
+                } else
+                {
+                    QualitySettings.antiAliasing = MSAA.Value;
+                }
+            }
+
+
+            [HarmonyPatch(typeof(Game.AiSight), "Update")]
+            [HarmonyPrefix]
+            public static void reenableAfterFilter(Game.AiSight __instance)
+            {
+                if (QualitySettings.antiAliasing != MSAA.Value)
+                {
+                    if (!__instance.IsActive())
+                    {
+                        QualitySettings.antiAliasing = MSAA.Value;
+                    }
+                }
             }
         }
 
@@ -99,24 +130,7 @@ namespace AINirvanaUltrawideFix
         {
             public static float NewAspectRatio = (float)DesiredResolutionX.Value / DesiredResolutionY.Value;
 
-            // Leave cursor visible at main menu
-            [HarmonyPatch(typeof(CanvasScaler), "OnEnable")]
-            [HarmonyPostfix]
-            public static void test()
-            {
-                GameObject uiActive = GameObject.Find("Canvas2");
-
-                if (uiActive != null && Cursor.visible == true)
-                {
-                    if (!CursorVisible.Value)
-                    {
-                        Cursor.visible = false;
-                    }
-                }
-            }
-
-
-            // Implement various UI scaling fixed by changing ScreenMatchMode and scaling filters for specific canvases.
+            //Implement various UI scaling fixed by changing ScreenMatchMode and scaling filters for specific canvases.
             [HarmonyPatch(typeof(CanvasScaler), "OnEnable")]
             [HarmonyPostfix]
             public static void FixUIScaling(CanvasScaler __instance)
@@ -134,18 +148,16 @@ namespace AINirvanaUltrawideFix
 
                     else if (currName == "#Canvas")
                     {
-                        
 
-                        Canvas currCanvas = __instance.gameObject.GetComponent<Canvas>();
-                        Transform[] baseChildren = currCanvas.GetComponentsInChildren<Transform>(false);
-                        
-                        foreach (Transform item in baseChildren)
+
+                        var baseChildren = GameObject.FindObjectsOfType<Game.FilterController>();
+
+                        foreach (Game.FilterController item in baseChildren)
                         {
                             GameObject currObj = item.gameObject;
                             string itemName = currObj.name;
                             if (itemName.Contains("Filter"))
                             {
-                                
                                 currObj.transform.localScale = new Vector3(1 * NewAspectRatio, 1f, 1f);
                             }
                         }
@@ -155,18 +167,15 @@ namespace AINirvanaUltrawideFix
                     {
                         __instance.m_ScreenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
                         __instance.matchWidthOrHeight = 1;
-                        Canvas currCanvas = __instance.gameObject.GetComponent<Canvas>();
 
+                        var baseChildren = GameObject.FindObjectsOfType<Game.FilterController>();
 
-                        Transform[] allChildren = currCanvas.GetComponentsInChildren<Transform>(false);
-
-                        foreach (Transform item in allChildren)
+                        foreach (Game.FilterController item in baseChildren)
                         {
                             GameObject currObj = item.gameObject;
                             string itemName = currObj.name;
                             if (itemName.Contains("Filter"))
                             {
-                                //MelonLogger.Msg(itemName);
                                 currObj.transform.localScale = new Vector3(1 * NewAspectRatio, 1f, 1f);
                             }
                         }
@@ -176,7 +185,7 @@ namespace AINirvanaUltrawideFix
                     {
                         __instance.m_ScreenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
                     }
-                    
+
                 }
             }
 
