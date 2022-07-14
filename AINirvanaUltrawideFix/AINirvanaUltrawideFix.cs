@@ -2,10 +2,8 @@
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using System.Collections.Generic;
-using System;
+
 
 [assembly: MelonInfo(typeof(AINirvanaUltrawideFix.AINirvanaUltrawideFix), "AI: Somnium Files - nirvanA Initiative", "1.0.0", "jshethbright")]
 [assembly: MelonGame("SpikeChunsoft", "AI_TheSomniumFiles2")]
@@ -55,8 +53,6 @@ namespace AINirvanaUltrawideFix
 
                 QualitySettings.antiAliasing = MSAA.Value;
                 //QualitySettings.antiAliasing = 0;
-
-
             }
 
             
@@ -68,12 +64,16 @@ namespace AINirvanaUltrawideFix
         [HarmonyPatch]
         public class MSAAFix
         {
+
+
+            // Adjust pipeline settings to match MSAA value on creation
             [HarmonyPatch(typeof(UniversalRenderPipelineAsset), "CreatePipeline")]
             [HarmonyPrefix]
-            public static void fixPipeline(UniversalRenderPipelineAsset __instance)
+            public static void FixPipeline(UniversalRenderPipelineAsset __instance)
             {
+                
 
-                switch (MSAA.Value)
+                switch (QualitySettings.antiAliasing)
                 {
                     case 0:
                         __instance.m_MSAA = MsaaQuality.Disabled;
@@ -96,39 +96,105 @@ namespace AINirvanaUltrawideFix
 
             }
 
+            
 
+            //[HarmonyPatch(typeof(RenderPipeline), "BeginCameraRendering")]
+            //[HarmonyPrefix]
+            //public static void test(ref Camera camera)
+            //{
+            //    if (camera != null)
+            //    {
+            //        if (camera.activeTexture.name.Contains("AiSight"))
+            //        {
+            //            RenderTexture currTex = camera.activeTexture;
+            //            camera.activeTexture.antiAliasing = 0;
+            //        }
+            //    }
+            //}
+
+
+
+            //[HarmonyPatch(typeof(Game.CameraController), "OnDisable")]
+            //[HarmonyPostfix]
+            //public static void reEnableAfterSomCamera(Game.CameraController __instance)
+            //{
+            //    Camera currCam = __instance._camera;
+
+            //    if (currCam != null)
+            //    {
+            //        //MelonLogger.Msg(currCam.name);
+            //        if (currCam.name.Contains("Som"))
+            //        {
+            //            MelonLogger.Msg($"error: {currCam.name}");
+            //            MelonLogger.Msg(currCam.name);
+            //            QualitySettings.antiAliasing = MSAA.Value;
+            //        }
+            //    }
+            //}
+
+
+            // Check AiSight mode and disable MSAA calculations if mode is a filter
             [HarmonyPatch(typeof(Game.AiSight), "SetMode")]
             [HarmonyPrefix]
-            public static void fixAiSightFilters(Game.AiSight __instance, ref Special special)
+            public static void FixAiSightFilter(Game.AiSight __instance, ref Special special)
             {
+                //MelonLogger.Msg(special);
                 if (special != Special.Info && special != Special.Normal && special != Special.Zoom)
                 {
                     QualitySettings.antiAliasing = 0;
-                } else
+
+                }
+                
+            }
+
+            // Disable MSAA in Somniums and reenable afterwards.
+            [HarmonyPatch(typeof(Game.SceneController), "Load")]
+            [HarmonyPrefix]
+            public static void AdjustMSAAByScene(ref string sceneName)
+            {
+                MelonLogger.Msg(sceneName);
+                if (sceneName.StartsWith("M"))
+                {
+                    QualitySettings.antiAliasing = 0;
+                }
+
+                if (
+                    !sceneName.Contains("Option") && 
+                    !sceneName.StartsWith("M") && 
+                    !sceneName.StartsWith("aiba") &&
+                    !sceneName.Contains("evaluation") &&
+                    !sceneName.Contains("file")
+                    )
                 {
                     QualitySettings.antiAliasing = MSAA.Value;
                 }
+                
             }
 
+            //[HarmonyPatch(typeof(Game.AiSight), "Update")]
+            //[HarmonyPostfix]
+            //public static void reenableAfterFilter(Game.AiSight __instance)
+            //{
+            //    if (QualitySettings.antiAliasing != MSAA.Value)
+            //    {
+            //        if (!__instance.IsActive() && !__instance.IsVisible() && !__instance.IsFullOpen())
+            //        {
+            //            MelonLogger.Msg("Filter inactive, AA now on");
+            //            QualitySettings.antiAliasing = 8;
+            //            RenderPipelineAsset currRenderPipe = GraphicsSettings.renderPipelineAsset;
+            //            QualitySettings.renderPipeline = RenderPipelineAsset.Instantiate(currRenderPipe);
+            //        }
+            //    }
 
-            [HarmonyPatch(typeof(Game.AiSight), "Update")]
-            [HarmonyPrefix]
-            public static void reenableAfterFilter(Game.AiSight __instance)
-            {
-                if (QualitySettings.antiAliasing != MSAA.Value)
-                {
-                    if (!__instance.IsActive())
-                    {
-                        QualitySettings.antiAliasing = MSAA.Value;
-                    }
-                }
-            }
+            //}
         }
 
         [HarmonyPatch]
         public class UIFixes
         {
             public static float NewAspectRatio = (float)DesiredResolutionX.Value / DesiredResolutionY.Value;
+
+
 
             //Implement various UI scaling fixed by changing ScreenMatchMode and scaling filters for specific canvases.
             [HarmonyPatch(typeof(CanvasScaler), "OnEnable")]
@@ -138,6 +204,7 @@ namespace AINirvanaUltrawideFix
                 if (NewAspectRatio > 1.8 && UIFix.Value)
                 {
                     string currName = __instance.gameObject.name;
+                    //MelonLogger.Msg(currName);
 
                     if (currName == "CanvasBrightness")
                     {
